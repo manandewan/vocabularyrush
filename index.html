@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100 antialiased">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vocabrush — The Ultimate CAT VARC Root & Tone Decryption Engine</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+            serif: ['"Newsreader"', 'Georgia', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+    .glass-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card-hover {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(20, 184, 166, 0.35);
+      box-shadow: 0 10px 30px -10px rgba(20, 184, 166, 0.15);
+      transform: translateY(-2px);
+    }
+
+    /* 3D Flip Card */
+    .perspective-card { perspective: 1200px; }
+    .card-inner {
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+    .card-inner.is-flipped { transform: rotateY(180deg); }
+    .card-front, .card-back {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .card-back { transform: rotateY(180deg); }
+
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+  </style>
+</head>
+
+<body class="h-full flex flex-col bg-slate-950 font-sans selection:bg-teal-500 selection:text-slate-950 pb-20 md:pb-0">
+
+  <!-- TOP STATUS BAR -->
+  <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-white/5 py-1.5 px-4 text-xs font-medium flex items-center justify-between text-slate-300">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold bg-teal-500/10 text-teal-300 border border-teal-500/20">
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span>
+        Vocabrush • High-Yield CAT VARC Engine
+      </span>
+      <span class="hidden sm:inline text-slate-400 text-xs">Root Curriculum • Tone Taxonomy • Latin Signposts • Traps</span>
+    </div>
+    <div class="flex items-center gap-3 sm:gap-4 text-[11px]">
+      <span>Progress: <strong id="topProgressPct" class="text-teal-300 font-mono">0%</strong></span>
+      <span class="text-slate-600">|</span>
+      <span>Completed: <strong id="topCompletedCount" class="text-amber-300 font-mono">0 / 39</strong></span>
+    </div>
+  </div>
+
+  <!-- APPLICATION HEADER -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b border-white/10 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('syllabus')">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-teal-500/20 font-black text-lg flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-extrabold text-base tracking-tight text-white">Vocabrush</span>
+            <span class="text-[10px] uppercase px-1.5 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">CAT VARC</span>
+          </div>
+          <span class="block text-[10px] text-slate-400 font-medium">350+ Lexemes • Slide-by-Slide Panels</span>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1.5 bg-slate-950/60 p-1 rounded-xl border border-white/5">
+        <button id="nav-syllabus" onclick="switchView('syllabus')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-teal-300 bg-teal-500/10 border border-teal-500/20 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          <span>Syllabus & Modules</span>
+        </button>
+
+        <button id="nav-synthesizer" onclick="switchView('synthesizer')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          <span>Word Synthesizer</span>
+        </button>
+
+        <button id="nav-flashcards" onclick="switchView('flashcards')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span>Speed Flashcards</span>
+        </button>
+      </nav>
+
+      <!-- Storage & Quick Action -->
+      <div class="flex items-center gap-2">
+        <!-- Progress Backup Button -->
+        <button onclick="exportProgressBackup()" class="hidden sm:flex px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-white/10 items-center gap-1 transition" title="Export Progress JSON">
+          <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Save Backup</span>
+        </button>
+
+        <label class="hidden sm:flex px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-white/10 items-center gap-1 transition cursor-pointer" title="Import Progress JSON">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12"/></svg>
+          <span>Restore</span>
+          <input type="file" id="importFileInput" onchange="importProgressBackup(event)" class="hidden" accept=".json">
+        </label>
+
+        <button id="resumeLessonBtn" onclick="resumeActiveLesson()" class="px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-950 bg-gradient-to-r from-teal-400 to-teal-300 hover:from-teal-300 hover:to-teal-200 transition shadow-sm flex items-center gap-1.5 min-h-[38px]">
+          <span>Resume</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 relative">
+    
+    <!-- Ambient Glow -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gradient-to-tr from-teal-500/10 via-indigo-500/10 to-purple-500/10 blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: SYLLABUS & MODULE ROADMAP -->
+    <!-- ========================================================================= -->
+    <section id="view-syllabus" class="space-y-8">
+      
+      <!-- Hero Banner -->
+      <div class="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-[11px] font-semibold text-teal-300 mb-3">
+            <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+            Vocabrush Full CAT VARC Suite • Local Persistence Enabled
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+            Vocabrush: <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-indigo-300 to-purple-400">The CAT VARC Decryption System</span>
+          </h1>
+          <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
+            36 Systematic Root Lessons, <strong>CAT Tone Taxonomy</strong>, <strong>Latin Logical Signposts</strong>, and <strong>Secondary Meaning Traps</strong>. Each lesson operates in a sequential multi-panel slide deck with a dedicated checkpoint quiz panel.
+          </p>
+
+          <!-- Overall Progress Bar -->
+          <div class="mt-4 pt-4 border-t border-white/10">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5 font-medium">
+              <span>All-Track Completion</span>
+              <span id="syllabusProgressLabel" class="text-teal-300 font-mono font-bold">0% (0 / 39)</span>
+            </div>
+            <div class="w-full h-2.5 rounded-full bg-slate-900 overflow-hidden border border-white/5">
+              <div id="syllabusProgressBar" class="h-full bg-gradient-to-r from-teal-500 via-indigo-500 to-purple-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Track 1: Supplementary High-Yield Suites (Tone, Latin, Secondary Meanings) -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-xs font-mono border border-amber-500/30">Special Track</span>
+            <span>CAT Tone Taxonomy, Latin Signposts & Trap Vault</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">3 Specialized Modules</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="supplementaryModulesContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Track 2: 6x6 Systematic Root Engine (36 Lessons) -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-xs font-mono border border-teal-500/30">Core Track</span>
+            <span>6x6 Systematic Root Engine (36 Lessons)</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">6 Categories • 6 Exams</span>
+        </div>
+
+        <div class="space-y-4 sm:space-y-6" id="categoriesContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: MULTI-PANEL LESSON RUNNER ("NEXT" "NEXT" "NEXT") -->
+    <!-- ========================================================================= -->
+    <section id="view-lesson" class="hidden space-y-4 sm:space-y-6 max-w-4xl mx-auto">
+      
+      <!-- Top Navigation & Progress Dots -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-2xl border border-white/5">
+        <div class="flex items-center justify-between sm:justify-start gap-3">
+          <button onclick="switchView('syllabus')" class="text-xs font-semibold text-slate-400 hover:text-teal-400 flex items-center gap-1.5 transition py-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            <span>Syllabus</span>
+          </button>
+          <span id="lessonBreadcrumb" class="font-mono text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-lg border border-teal-500/20 text-[11px]">Lesson Runner</span>
+        </div>
+
+        <!-- Step Indicator Tabs / Dots -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none" id="lessonStepDots">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Dynamic Active Lesson Panel Container -->
+      <div class="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl min-h-[460px] flex flex-col justify-between" id="activeLessonPanelContainer">
+        <!-- Injected Slide Content -->
+      </div>
+
+      <!-- Bottom Slide Navigation Bar -->
+      <div class="flex items-center justify-between gap-4 bg-slate-900/80 p-3 sm:p-4 rounded-2xl border border-white/10">
+        <button id="lessonPrevBtn" onclick="prevLessonStep()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 min-h-[44px] disabled:opacity-30 disabled:cursor-not-allowed">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          <span>Previous Step</span>
+        </button>
+
+        <span id="lessonStepCounter" class="text-xs font-mono text-slate-400">Step 1 of 6</span>
+
+        <button id="lessonNextBtn" onclick="nextLessonStep()" class="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold transition flex items-center gap-1.5 min-h-[44px] shadow-lg shadow-teal-500/20">
+          <span>Next Step</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: CATEGORY COMPREHENSIVE MASTERY EXAM -->
+    <!-- ========================================================================= -->
+    <section id="view-category-quiz" class="hidden space-y-4 sm:space-y-6 max-w-3xl mx-auto">
+      
+      <div class="flex items-center justify-between text-xs">
+        <button onclick="switchView('syllabus')" class="font-semibold text-slate-400 hover:text-teal-400 flex items-center gap-1.5 transition py-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          <span>Syllabus</span>
+        </button>
+        <span class="font-mono text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20 text-[11px] sm:text-xs">Category Mastery Exam</span>
+      </div>
+
+      <div class="glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl space-y-5 sm:space-y-6" id="masteryExamCard">
+        <div class="border-b border-white/10 pb-4 flex items-center justify-between">
+          <div>
+            <span id="masteryCatBadge" class="text-[10px] sm:text-xs uppercase font-bold text-teal-400 tracking-wider">Category Assessment</span>
+            <h2 id="masteryCatTitle" class="text-xl sm:text-2xl font-black text-white mt-0.5">Mastery Exam</h2>
+          </div>
+          <div class="text-xs font-mono text-slate-400 text-right">
+            Score: <strong id="masteryScoreDisplay" class="text-amber-400 text-sm">0 / 6</strong>
+          </div>
+        </div>
+
+        <div id="masteryQuestionsContainer" class="space-y-4 sm:space-y-6">
+          <!-- Populated by JS -->
+        </div>
+
+        <div id="masteryResultBox" class="mt-6 p-5 sm:p-6 rounded-2xl bg-teal-950/80 border border-teal-500/40 text-center hidden">
+          <!-- Result Content -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4: WORD SYNTHESIZER LAB -->
+    <!-- ========================================================================= -->
+    <section id="view-synthesizer" class="hidden space-y-6 max-w-4xl mx-auto">
+      <div class="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8">
+        <div class="max-w-2xl">
+          <span class="text-[10px] sm:text-xs uppercase font-bold tracking-wider text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-md border border-teal-500/20">Interactive Lab</span>
+          <h2 class="text-xl sm:text-3xl font-extrabold text-white mt-2">Morphological Word Synthesizer</h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1">
+            Assemble prefixes, roots, and suffixes to observe how compound meanings and tone orientations are generated in real-time.
+          </p>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <div class="p-4 rounded-xl sm:rounded-2xl bg-slate-900/90 border border-teal-500/20">
+            <span class="text-xs font-bold uppercase tracking-wider text-teal-400 block mb-1.5">1. Prefix / Theme</span>
+            <select id="builderPrefix" onchange="updateWordBuilder()" class="w-full bg-slate-950 text-white text-xs sm:text-sm font-semibold p-2.5 sm:p-3 rounded-xl border border-white/10 focus:ring-2 focus:ring-teal-400 outline-none">
+              <option value="BENE" data-desc="Good / Well / Favourable" data-val="+">BENE- (Good / Well)</option>
+              <option value="MALE" data-desc="Bad / Ill / Evil" data-val="-">MALE- (Bad / Ill)</option>
+              <option value="EQUI" data-desc="Equal / Balanced" data-val="=">EQUI- (Equal / Same)</option>
+              <option value="CIRCUM" data-desc="Around / Evasive" data-val="=">CIRCUM- (Around / Evasive)</option>
+              <option value="A" data-desc="Without / Not" data-val="-">A- / AN- (Without / Not)</option>
+              <option value="EX" data-desc="Out of / Away from" data-val="=">EX- (Out of / Away)</option>
+              <option value="PRE" data-desc="Before / In advance" data-val="=">PRE- (Before)</option>
+              <option value="EPISTEME" data-desc="Knowledge / Understanding" data-val="=">EPISTEME- (Knowledge)</option>
+              <option value="TELOS" data-desc="End / Purpose / Goal" data-val="=">TELOS- (Purpose / End)</option>
+              <option value="ONTOS" data-desc="Being / Reality" data-val="=">ONTOS- (Being / Reality)</option>
+              <option value="HERMES" data-desc="Interpretation / Message" data-val="=">HERMES- (Interpretation)</option>
+              <option value="SEMEION" data-desc="Sign / Symbol" data-val="=">SEMEION- (Sign / Symbol)</option>
+            </select>
+          </div>
+
+          <div class="p-4 rounded-xl sm:rounded-2xl bg-slate-900/90 border border-amber-500/20">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400 block mb-1.5">2. Root</span>
+            <select id="builderRoot" onchange="updateWordBuilder()" class="w-full bg-slate-950 text-white text-xs sm:text-sm font-semibold p-2.5 sm:p-3 rounded-xl border border-white/10 focus:ring-2 focus:ring-amber-400 outline-none">
+              <option value="VOL" data-desc="Wish / Will / Choice">VOL (Wish / Will)</option>
+              <option value="DICT" data-desc="To Speak / Proclaim">DICT (To Speak)</option>
+              <option value="VOC" data-desc="Voice / To Call">VOC (Voice / Call)</option>
+              <option value="LOCUT" data-desc="To Talk / Converse">LOCUT / LOQU (To Talk)</option>
+              <option value="ANIM" data-desc="Mind / Spirit / Courage">ANIM (Mind / Spirit)</option>
+              <option value="CULP" data-desc="Blame / Fault">CULP (Blame / Fault)</option>
+              <option value="SCI" data-desc="To Know / Understand">SCI / GNO (To Know)</option>
+              <option value="MORPH" data-desc="Form / Shape">MORPH (Shape / Form)</option>
+            </select>
+          </div>
+
+          <div class="p-4 rounded-xl sm:rounded-2xl bg-slate-900/90 border border-indigo-500/20">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 block mb-1.5">3. Suffix / Discipline</span>
+            <select id="builderSuffix" onchange="updateWordBuilder()" class="w-full bg-slate-950 text-white text-xs sm:text-sm font-semibold p-2.5 sm:p-3 rounded-xl border border-white/10 focus:ring-2 focus:ring-indigo-400 outline-none">
+              <option value="ENT" data-desc="Adjective (Characterized by)">-ENT / -ANT (Adjective)</option>
+              <option value="ION" data-desc="Noun (Action / State / Process)">-ION / -TION (Noun)</option>
+              <option value="OUS" data-desc="Adjective (Full of / Prone to)">-OUS / -IOUS (Adjective)</option>
+              <option value="ATE" data-desc="Verb (To make / cause to be)">-ATE (Verb)</option>
+              <option value="ITY" data-desc="Noun (State or quality of)">-ITY (Noun)</option>
+              <option value="OLOGY" data-desc="Noun (Systematic Study / Theory of)">-OLOGY (Study / Theory)</option>
+              <option value="ITICS" data-desc="Noun (Art of / Method / Critical Practice)">-ITICS / -ICS (Art / Science)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-teal-950/80 via-slate-900 to-indigo-950/80 border border-teal-500/30">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-teal-400 tracking-widest">Synthesized Lexeme</span>
+              <h3 id="builderResultWord" class="text-2xl sm:text-3xl font-black text-white mt-0.5">Benevolent</h3>
+              <div id="builderResultBreakdown" class="text-xs text-teal-300 font-mono mt-1">BENE (well) + VOL (wish) + ENT (adj)</div>
+            </div>
+            <button onclick="speakWord(document.getElementById('builderResultWord').innerText)" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition border border-white/10 min-h-[44px]">
+              <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+              <span>Pronounce</span>
+            </button>
+          </div>
+          <div class="mt-4 pt-4 border-t border-white/10">
+            <p id="builderResultDef" class="text-xs sm:text-sm font-medium text-slate-200">Well-meaning, kindly, charitable.</p>
+            <p id="builderResultCatContext" class="text-[11px] sm:text-xs text-slate-400 italic mt-1 font-serif">"The author critiques the paternalistic claim that colonial rulers acted as benevolent stewards of local welfare."</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 5: SPEED FLASHCARDS -->
+    <!-- ========================================================================= -->
+    <section id="view-flashcards" class="hidden space-y-5 max-w-xl mx-auto text-center">
+      <div>
+        <span class="text-[10px] sm:text-xs uppercase font-bold tracking-wider text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-md border border-teal-500/20">Active Recall Deck</span>
+        <h2 class="text-xl sm:text-2xl font-black text-white mt-1.5">Speed Root Flashcards</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Tap card or spacebar to flip between root anatomy and CAT derivatives.</p>
+      </div>
+
+      <div class="perspective-card w-full h-80 mx-auto mt-4">
+        <div id="flashcardInner" onclick="flipFlashcard()" class="card-inner glass-card w-full h-80 rounded-2xl sm:rounded-3xl p-6 sm:p-8 cursor-pointer flex flex-col justify-between select-none relative hover:border-teal-500/40 shadow-2xl">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span id="fcCluster" class="font-semibold text-teal-400 text-left truncate mr-2">Tone & Sentiment</span>
+            <span class="flex items-center gap-1 text-slate-400 text-[11px] flex-shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Flip
+            </span>
+          </div>
+
+          <div id="fcFront" class="my-auto">
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Root Family</span>
+            <h3 id="fcRoot" class="text-3xl sm:text-4xl font-black text-white mt-1">BENE / BON</h3>
+            <p id="fcOrigin" class="text-xs text-slate-400 font-mono mt-1">Latin: bene = well/good</p>
+          </div>
+
+          <div id="fcBack" class="my-auto hidden text-left">
+            <span class="text-[10px] uppercase font-bold text-teal-400 tracking-widest block text-center">Core Meaning & High-Yield Derivatives</span>
+            <h4 id="fcMeaning" class="text-base sm:text-lg font-bold text-white text-center mt-0.5">Good, well, favourable</h4>
+            <div id="fcDerivativesList" class="mt-3 space-y-1.5 max-h-36 overflow-y-auto text-xs text-slate-300 pr-1"></div>
+          </div>
+
+          <div class="flex items-center justify-between pt-3 border-t border-white/10 text-xs text-slate-400">
+            <span id="fcProgress" class="font-mono">Card 1 of 72</span>
+            <button onclick="event.stopPropagation(); speakWord(document.getElementById('fcRoot').innerText)" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition" title="Pronounce">
+              <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-3 sm:gap-4 mt-4">
+        <button onclick="prevFlashcard()" class="px-4 py-2.5 rounded-xl bg-slate-900 text-slate-200 border border-white/10 hover:bg-slate-800 text-xs font-bold transition flex items-center gap-1.5 min-h-[44px]">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg> Prev
+        </button>
+        <button onclick="flipFlashcard()" class="px-6 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold transition min-h-[44px]">
+          Flip Card
+        </button>
+        <button onclick="nextFlashcard()" class="px-4 py-2.5 rounded-xl bg-slate-900 text-slate-200 border border-white/10 hover:bg-slate-800 text-xs font-bold transition flex items-center gap-1.5 min-h-[44px]">
+          Next <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-lg border-t border-white/10 px-3 py-2 pb-safe flex items-center justify-around text-[10px] font-medium text-slate-400">
+    <button onclick="switchView('syllabus')" id="mob-nav-syllabus" class="flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-teal-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+      <span>Syllabus</span>
+    </button>
+    
+    <button onclick="resumeActiveLesson()" id="mob-nav-lesson" class="flex flex-col items-center gap-1 py-1 px-3 rounded-lg hover:text-slate-200">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      <span>Lesson</span>
+    </button>
+
+    <button onclick="switchView('synthesizer')" id="mob-nav-synthesizer" class="flex flex-col items-center gap-1 py-1 px-3 rounded-lg hover:text-slate-200">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+      <span>Synthesizer</span>
+    </button>
+
+    <button onclick="switchView('flashcards')" id="mob-nav-flashcards" class="flex flex-col items-center gap-1 py-1 px-3 rounded-lg hover:text-slate-200">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <span>Flashcards</span>
+    </button>
+  </nav>
+
+  <!-- FOOTER -->
+  <footer class="hidden md:block bg-slate-950 border-t border-white/10 text-slate-500 text-xs py-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-black text-white">Vocabrush</span>
+        <span>•</span>
+        <span>The Complete High-Yield CAT VARC Decryption Platform</span>
+      </div>
+      <p class="text-slate-500 text-center sm:text-right">
+        Auto-saved to your browser. Export backup JSON anytime.
+      </p>
+    </div>
+  </footer>
+
+  <!-- DATA SCRIPT -->
+  <script src="cat_rootforge_data.js"></script>
+
+  <!-- APPLICATION CONTROLLER -->
+  <script>
+    // State & LocalStorage Persistence
+    const STORAGE_KEY = 'vocabrush_progress_v2';
+    let userProgress = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if (!userProgress.completedLessons) userProgress.completedLessons = [];
+    if (!userProgress.categoryScores) userProgress.categoryScores = {};
+    if (!userProgress.activeLessonId) userProgress.activeLessonId = 'les-1-1';
+
+    let currentView = 'syllabus';
+    let currentLesson = null;
+    let currentCategory = null;
+    let currentPanelIndex = 0;
+    let lessonQuizAnswers = {};
+
+    let currentFlashcardIndex = 0;
+    let flashcardList = [];
+    let isFlipped = false;
+
+    // Initialization
+    document.addEventListener("DOMContentLoaded", () => {
+      renderSyllabus();
+      updateTopStats();
+      initFlashcards();
+
+      // Keyboard shortcuts
+      window.addEventListener("keydown", (e) => {
+        if (currentView === 'flashcards') {
+          if (e.code === 'Space') {
+            e.preventDefault();
+            flipFlashcard();
+          } else if (e.code === 'ArrowRight') {
+            nextFlashcard();
+          } else if (e.code === 'ArrowLeft') {
+            prevFlashcard();
+          }
+        } else if (currentView === 'lesson') {
+          if (e.code === 'ArrowRight') {
+            nextLessonStep();
+          } else if (e.code === 'ArrowLeft') {
+            prevLessonStep();
+          }
+        }
+      });
+    });
+
+    function saveProgress() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+      updateTopStats();
+    }
+
+    function exportProgressBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userProgress, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `vocabrush_progress_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importProgressBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.completedLessons) {
+            userProgress = imported;
+            saveProgress();
+            renderSyllabus();
+            alert("Progress successfully restored from backup!");
+          }
+        } catch (err) {
+          alert("Invalid backup JSON file.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function updateTopStats() {
+      const totalLessons = 36 + (CAT_CURRICULUM_DATA.supplementaryModules ? CAT_CURRICULUM_DATA.supplementaryModules.reduce((acc, m) => acc + m.lessons.length, 0) : 3);
+      let completedCount = userProgress.completedLessons.length;
+      let pct = Math.min(100, Math.round((completedCount / totalLessons) * 100));
+      
+      const pctEl = document.getElementById("topProgressPct");
+      const countEl = document.getElementById("topCompletedCount");
+      const barEl = document.getElementById("syllabusProgressBar");
+      const labelEl = document.getElementById("syllabusProgressLabel");
+
+      if (pctEl) pctEl.innerText = `${pct}%`;
+      if (countEl) countEl.innerText = `${completedCount} / ${totalLessons}`;
+      if (barEl) barEl.style.width = `${pct}%`;
+      if (labelEl) labelEl.innerText = `${pct}% (${completedCount} / ${totalLessons})`;
+    }
+
+    // View Switching
+    function switchView(viewName) {
+      currentView = viewName;
+      const views = ['syllabus', 'lesson', 'category-quiz', 'synthesizer', 'flashcards'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const navEl = document.getElementById(`nav-${v}`);
+        const mobNavEl = document.getElementById(`mob-nav-${v}`);
+
+        if (el) {
+          if (v === viewName) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+        }
+        if (navEl) {
+          if (v === viewName) {
+            navEl.className = "nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-teal-300 bg-teal-500/10 border border-teal-500/20 transition flex items-center gap-1.5";
+          } else {
+            navEl.className = "nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
+          }
+        }
+        if (mobNavEl) {
+          if (v === viewName) {
+            mobNavEl.className = "flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-teal-300 font-bold";
+          } else {
+            mobNavEl.className = "flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-slate-400 hover:text-slate-200";
+          }
+        }
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 1. SYLLABUS RENDERER
+    function renderSyllabus() {
+      // 1. Render Supplementary Modules
+      const suppContainer = document.getElementById("supplementaryModulesContainer");
+      if (suppContainer && CAT_CURRICULUM_DATA.supplementaryModules) {
+        suppContainer.innerHTML = CAT_CURRICULUM_DATA.supplementaryModules.map(mod => {
+          const les = mod.lessons[0];
+          const isDone = userProgress.completedLessons.includes(les.id);
+          return `
+            <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3 border border-amber-500/20 hover:border-amber-500/40 transition">
+              <div>
+                <span class="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold">${mod.track}</span>
+                <h3 class="text-base font-bold text-white mt-1">${mod.title}</h3>
+                <p class="text-xs text-slate-300 mt-1 leading-relaxed">${mod.tagline}</p>
+              </div>
+
+              <div class="pt-3 border-t border-white/10 flex items-center justify-between">
+                <span class="text-[10px] font-mono text-slate-400">6 Panels + Quiz</span>
+                <button onclick="startSupplementaryLesson('${mod.id}', '${les.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold ${isDone ? 'bg-slate-800 text-emerald-300' : 'bg-amber-500 hover:bg-amber-400 text-slate-950'} transition flex items-center gap-1.5 min-h-[38px]">
+                  <span>${isDone ? 'Review Panel' : 'Start Panel'}</span>
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // 2. Render Core 6x6 Root Categories
+      const container = document.getElementById("categoriesContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      CAT_CURRICULUM_DATA.categories.forEach(cat => {
+        const catCard = document.createElement("div");
+        catCard.className = `glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 space-y-4 border ${cat.color}`;
+        
+        let lessonsHtml = cat.lessons.map(les => {
+          const isDone = userProgress.completedLessons.includes(les.id);
+          return `
+            <div class="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-900/80 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-teal-500/30 transition">
+              <div class="flex items-start gap-3">
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl ${isDone ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400 border border-white/10'} flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                  ${isDone ? '✓' : les.lessonNumber}
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] sm:text-[11px] font-mono text-slate-400 uppercase">Lesson ${cat.number}.${les.lessonNumber}</span>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-[10px] sm:text-[11px] text-teal-400 font-medium">6 Interactive Panels</span>
+                  </div>
+                  <h4 class="text-xs sm:text-sm sm:text-base font-bold text-white mt-0.5">${les.title}</h4>
+                </div>
+              </div>
+
+              <button onclick="startLesson('${cat.id}', '${les.id}')" class="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold ${isDone ? 'bg-slate-800 text-emerald-300 hover:bg-slate-700' : 'bg-teal-500 hover:bg-teal-400 text-slate-950'} transition flex items-center justify-center gap-1.5 min-h-[40px] flex-shrink-0">
+                <span>${isDone ? 'Review Panel Deck' : 'Start Panel Deck'}</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          `;
+        }).join("");
+
+        const catScore = userProgress.categoryScores[cat.id];
+        const allCatLessonsDone = cat.lessons.every(l => userProgress.completedLessons.includes(l.id));
+
+        catCard.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-white/10">
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-widest text-slate-400">Category ${cat.number} of 6</span>
+              <h3 class="text-lg sm:text-xl font-bold text-white mt-0.5">${cat.title}</h3>
+              <p class="text-xs text-slate-300 mt-0.5">${cat.tagline}</p>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3 self-start sm:self-auto">
+              ${catScore !== undefined ? `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">Exam: ${catScore}%</span>` : ''}
+              <button onclick="startCategoryQuiz('${cat.id}')" class="px-3 sm:px-4 py-2 rounded-xl text-xs font-bold ${allCatLessonsDone ? 'bg-purple-500 text-white hover:bg-purple-400 shadow-md' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'} transition flex items-center gap-1.5 min-h-[40px]">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>${catScore !== undefined ? 'Retake Exam' : 'Mastery Exam'}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2.5">
+            ${lessonsHtml}
+          </div>
+        `;
+
+        container.appendChild(catCard);
+      });
+    }
+
+    function resumeActiveLesson() {
+      let targetCat = CAT_CURRICULUM_DATA.categories[0];
+      let targetLes = targetCat.lessons[0];
+
+      for (let cat of CAT_CURRICULUM_DATA.categories) {
+        for (let les of cat.lessons) {
+          if (!userProgress.completedLessons.includes(les.id)) {
+            targetCat = cat;
+            targetLes = les;
+            break;
+          }
+        }
+      }
+      startLesson(targetCat.id, targetLes.id);
+    }
+
+    // 2. MULTI-PANEL LESSON RUNNER (FOR BOTH CORE ROOTS AND SUPPLEMENTARY TRACKS)
+    function startLesson(catId, lesId) {
+      const cat = CAT_CURRICULUM_DATA.categories.find(c => c.id === catId);
+      if (!cat) return;
+      const les = cat.lessons.find(l => l.id === lesId);
+      if (!les) return;
+
+      currentCategory = cat;
+      currentLesson = les;
+      currentPanelIndex = 0;
+      lessonQuizAnswers = {};
+
+      userProgress.activeLessonId = les.id;
+      saveProgress();
+
+      document.getElementById("lessonBreadcrumb").innerText = `Cat ${cat.number} • Lesson ${les.lessonNumber} of 6`;
+      renderLessonPanel();
+      switchView('lesson');
+    }
+
+    function startSupplementaryLesson(modId, lesId) {
+      const mod = CAT_CURRICULUM_DATA.supplementaryModules.find(m => m.id === modId);
+      if (!mod) return;
+      const les = mod.lessons.find(l => l.id === lesId);
+      if (!les) return;
+
+      currentCategory = { id: mod.id, number: "★", title: mod.title };
+      currentLesson = les;
+      currentPanelIndex = 0;
+      lessonQuizAnswers = {};
+
+      userProgress.activeLessonId = les.id;
+      saveProgress();
+
+      document.getElementById("lessonBreadcrumb").innerText = `${mod.track} • Step Deck`;
+      renderLessonPanel();
+      switchView('lesson');
+    }
+
+    function renderLessonPanel() {
+      const container = document.getElementById("activeLessonPanelContainer");
+      const dotsContainer = document.getElementById("lessonStepDots");
+      const prevBtn = document.getElementById("lessonPrevBtn");
+      const nextBtn = document.getElementById("lessonNextBtn");
+      const counter = document.getElementById("lessonStepCounter");
+
+      const totalPanels = currentLesson.panels.length + 1; // 5 content panels + 1 dedicated quiz panel = 6 steps
+      counter.innerText = `Step ${currentPanelIndex + 1} of ${totalPanels}`;
+      prevBtn.disabled = (currentPanelIndex === 0);
+
+      // Render Step Indicator Tabs
+      const stepNames = ["1. Concept", "2. Group A", "3. Group B", "4. Matrix", "5. Context", "6. Quiz Deck"];
+      dotsContainer.innerHTML = stepNames.map((name, idx) => `
+        <button onclick="goToPanel(${idx})" class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${
+          idx === currentPanelIndex 
+            ? 'bg-teal-500 text-slate-950 shadow' 
+            : (idx < currentPanelIndex ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400')
+        }">
+          ${name}
+        </button>
+      `).join("");
+
+      if (currentPanelIndex < currentLesson.panels.length) {
+        const panel = currentLesson.panels[currentPanelIndex];
+        nextBtn.innerHTML = `<span>Next Step</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+        nextBtn.className = "px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold transition flex items-center gap-1.5 min-h-[44px] shadow-lg shadow-teal-500/20";
+
+        if (panel.type === "concept") {
+          container.innerHTML = `
+            <div class="space-y-6">
+              <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <span class="text-xs uppercase font-bold text-teal-400 tracking-wider bg-teal-500/10 px-2.5 py-1 rounded-md border border-teal-500/20">${panel.badge}</span>
+                <span class="text-xs font-mono text-slate-400">${currentCategory.title}</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight">${panel.title}</h2>
+              <p class="text-sm sm:text-base text-slate-200 leading-relaxed font-serif">${panel.hook}</p>
+              
+              <div class="p-5 rounded-2xl bg-indigo-950/60 border border-indigo-500/30 space-y-2">
+                <strong class="text-xs font-bold text-indigo-300 uppercase tracking-wider block">Key Conceptual Insight:</strong>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${panel.keyInsight}</p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 font-mono">
+                ${panel.rule}
+              </div>
+            </div>
+          `;
+        } else if (panel.type === "root_deep_dive") {
+          container.innerHTML = `
+            <div class="space-y-6">
+              <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <span class="text-xs uppercase font-bold text-teal-400 tracking-wider bg-teal-500/10 px-2.5 py-1 rounded-md border border-teal-500/20">Analysis & Anatomy</span>
+                <span class="text-xs font-mono text-slate-400">${panel.origin}</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight">${panel.title}</h2>
+              <p class="text-xs font-bold text-teal-300">Core Semantic Focus: <span class="text-white font-normal">${panel.coreMeaning}</span></p>
+
+              <div class="space-y-3 pt-2">
+                <span class="text-[11px] font-mono text-slate-400 uppercase tracking-widest block font-bold">High-Yield Lexemes & Derivatives:</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  ${panel.derivatives.map(d => `
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-white/10 space-y-1.5 hover:border-teal-500/30 transition">
+                      <div class="flex items-center justify-between">
+                        <strong class="text-sm font-black text-teal-300">${d.word}</strong>
+                        <button onclick="speakWord('${d.word}')" class="text-slate-400 hover:text-teal-400 transition" title="Pronounce">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                        </button>
+                      </div>
+                      <span class="text-[10px] font-mono text-amber-300 block">${d.breakdown}</span>
+                      <p class="text-xs text-slate-200">${d.def}</p>
+                      <p class="text-[11px] text-slate-400 italic font-serif">"${d.catContext}"</p>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (panel.type === "contrast_matrix") {
+          container.innerHTML = `
+            <div class="space-y-6">
+              <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <span class="text-xs uppercase font-bold text-amber-400 tracking-wider bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">Comparative Morphology</span>
+                <span class="text-xs font-mono text-slate-400">Step 4 of 6</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight">${panel.title}</h2>
+              <p class="text-xs text-slate-300">Compare the dual concepts side-by-side to recognize how opposing author stances are constructed.</p>
+
+              <div class="space-y-3">
+                ${panel.matrix.map(m => `
+                  <div class="p-3.5 rounded-xl bg-slate-900 border border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                    <div class="border-l-2 border-emerald-400 pl-3">
+                      <span class="text-[10px] font-mono text-emerald-400 block uppercase">Dimension A</span>
+                      <strong class="text-xs sm:text-sm text-white">${m.positive}</strong>
+                    </div>
+                    <div class="border-l-2 border-rose-400 pl-3">
+                      <span class="text-[10px] font-mono text-rose-400 block uppercase">Dimension B</span>
+                      <strong class="text-xs sm:text-sm text-white">${m.negative}</strong>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+
+              <div class="p-4 rounded-xl bg-teal-950/60 border border-teal-500/30 text-xs text-teal-200">
+                <strong class="font-bold text-teal-300 block mb-1">Strategic Pro-Tip:</strong>
+                ${panel.proTip}
+              </div>
+            </div>
+          `;
+        } else if (panel.type === "rc_excerpt") {
+          container.innerHTML = `
+            <div class="space-y-6">
+              <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <span class="text-xs uppercase font-bold text-purple-400 tracking-wider bg-purple-500/10 px-2.5 py-1 rounded-md border border-purple-500/20">Live RC Reading Context</span>
+                <span class="text-xs font-mono text-slate-400">Step 5 of 6</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight">${panel.title}</h2>
+              <p class="text-xs text-slate-400">Read this authentic CAT Reading Comprehension style excerpt to see the concepts functioning in live syntax:</p>
+
+              <div class="p-6 rounded-2xl bg-slate-900/90 border border-white/10 text-sm sm:text-base leading-relaxed text-slate-200 font-serif">
+                ${panel.passage}
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                ${panel.highlights.map(h => `
+                  <div class="p-2.5 rounded-lg bg-slate-950 border border-white/5 text-xs flex items-center justify-between">
+                    <div>
+                      <strong class="text-teal-300 font-mono">${h.word}</strong>
+                      <span class="text-[10px] text-slate-400 block">${h.root}</span>
+                    </div>
+                    <span class="text-[11px] text-slate-300 text-right">${h.note}</span>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        // PANEL 6: DEDICATED QUIZ PANEL
+        nextBtn.innerHTML = `<span>Complete Lesson</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+        nextBtn.className = "px-5 py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-white text-xs font-bold transition flex items-center gap-1.5 min-h-[44px] shadow-lg";
+
+        const answeredCount = Object.keys(lessonQuizAnswers).length;
+        const totalQ = currentLesson.quiz.length;
+
+        container.innerHTML = `
+          <div class="space-y-6">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+              <span class="text-xs uppercase font-bold text-amber-400 tracking-wider bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">Lesson Quiz Panel</span>
+              <span class="text-xs font-mono text-slate-400">Answer all ${totalQ} questions</span>
+            </div>
+            
+            <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight">Checkpoint Assessment</h2>
+            <p class="text-xs text-slate-300">Test your mastery of the concepts and contexts taught across the previous 5 slides.</p>
+
+            <div class="space-y-6" id="panelQuizList">
+              ${currentLesson.quiz.map((q, qIdx) => `
+                <div class="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-white/10 space-y-3" id="panel-q-card-${qIdx}">
+                  <span class="text-[10px] font-mono text-amber-400 uppercase tracking-widest font-bold">Question ${qIdx + 1} of ${totalQ}</span>
+                  <p class="text-xs sm:text-sm font-bold text-white">${q.prompt}</p>
+                  
+                  <div class="space-y-2 mt-3" id="panel-q-options-${qIdx}">
+                    ${q.options.map((opt, optIdx) => `
+                      <button onclick="submitPanelQuizAnswer(${qIdx}, ${optIdx}, ${q.correctIndex}, '${btoa(q.explanation)}')" class="w-full text-left p-3 rounded-xl bg-slate-950 border border-white/10 text-xs text-slate-300 hover:border-teal-400 hover:bg-slate-850 transition min-h-[44px]">
+                        <span class="font-bold text-teal-400 mr-1.5 font-mono">${String.fromCharCode(65 + optIdx)}.</span> ${opt}
+                      </button>
+                    `).join("")}
+                  </div>
+
+                  <div class="pt-2">
+                    <button onclick="togglePanelHint(${qIdx}, '${btoa(q.hints.join(' | '))}')" class="text-[11px] text-amber-300 hover:text-amber-200 flex items-center gap-1 font-semibold py-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                      <span>Need a Socratic Hint?</span>
+                    </button>
+                    <div id="panel-q-hint-${qIdx}" class="text-xs text-slate-300 italic hidden mt-1.5 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20"></div>
+                  </div>
+
+                  <div id="panel-q-feedback-${qIdx}" class="text-xs hidden mt-3 p-3 rounded-xl"></div>
+                </div>
+              `).join("")}
+            </div>
+
+            <div id="panelQuizCompletedMessage" class="p-4 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-semibold text-center ${answeredCount === totalQ ? '' : 'hidden'}">
+              ✓ All Checkpoint Questions Answered! Click "Complete Lesson" below to advance.
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function nextLessonStep() {
+      const totalPanels = currentLesson.panels.length + 1;
+      if (currentPanelIndex < totalPanels - 1) {
+        currentPanelIndex++;
+        renderLessonPanel();
+      } else {
+        if (!userProgress.completedLessons.includes(currentLesson.id)) {
+          userProgress.completedLessons.push(currentLesson.id);
+          saveProgress();
+          renderSyllabus();
+        }
+        goToNextLesson();
+      }
+    }
+
+    function prevLessonStep() {
+      if (currentPanelIndex > 0) {
+        currentPanelIndex--;
+        renderLessonPanel();
+      }
+    }
+
+    function goToPanel(idx) {
+      currentPanelIndex = idx;
+      renderLessonPanel();
+    }
+
+    function togglePanelHint(qIdx, encodedHints) {
+      const hintEl = document.getElementById(`panel-q-hint-${qIdx}`);
+      const hints = atob(encodedHints);
+      hintEl.classList.remove('hidden');
+      hintEl.innerHTML = `<strong class="text-amber-300">Socratic Hint:</strong> ${hints}`;
+    }
+
+    function submitPanelQuizAnswer(qIdx, optIdx, correctIdx, encodedExplanation) {
+      const optContainer = document.getElementById(`panel-q-options-${qIdx}`);
+      const feedbackEl = document.getElementById(`panel-q-feedback-${qIdx}`);
+      const exp = atob(encodedExplanation);
+
+      const btns = optContainer.querySelectorAll('button');
+      btns.forEach(b => b.disabled = true);
+
+      if (optIdx === correctIdx) {
+        btns[optIdx].classList.add('bg-emerald-950', 'border-emerald-500', 'text-emerald-200');
+        feedbackEl.className = "text-xs p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 block";
+        feedbackEl.innerHTML = `<strong>Correct!</strong> ${exp}`;
+        lessonQuizAnswers[qIdx] = true;
+      } else {
+        btns[optIdx].classList.add('bg-rose-950', 'border-rose-500', 'text-rose-200');
+        btns[correctIdx].classList.add('bg-emerald-950', 'border-emerald-500', 'text-emerald-200');
+        feedbackEl.className = "text-xs p-3 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-300 block";
+        feedbackEl.innerHTML = `<strong>Incorrect.</strong> ${exp}`;
+        lessonQuizAnswers[qIdx] = false;
+      }
+
+      if (Object.keys(lessonQuizAnswers).length === currentLesson.quiz.length) {
+        if (!userProgress.completedLessons.includes(currentLesson.id)) {
+          userProgress.completedLessons.push(currentLesson.id);
+          saveProgress();
+          renderSyllabus();
+        }
+        const completeMsg = document.getElementById("panelQuizCompletedMessage");
+        if (completeMsg) completeMsg.classList.remove("hidden");
+      }
+    }
+
+    function goToNextLesson() {
+      // Find category
+      const currentCatIdx = CAT_CURRICULUM_DATA.categories.findIndex(c => c.id === currentCategory.id);
+      if (currentCatIdx !== -1) {
+        const currentLesIdx = currentCategory.lessons.findIndex(l => l.id === currentLesson.id);
+        if (currentLesIdx < currentCategory.lessons.length - 1) {
+          startLesson(currentCategory.id, currentCategory.lessons[currentLesIdx + 1].id);
+          return;
+        } else if (currentCatIdx < CAT_CURRICULUM_DATA.categories.length - 1) {
+          const nextCat = CAT_CURRICULUM_DATA.categories[currentCatIdx + 1];
+          startLesson(nextCat.id, nextCat.lessons[0].id);
+          return;
+        }
+      }
+      switchView('syllabus');
+    }
+
+    // 3. CATEGORY MASTERY EXAM RUNNER
+    let catQuizAnswers = {};
+    let activeCatExam = null;
+
+    function startCategoryQuiz(catId) {
+      const cat = CAT_CURRICULUM_DATA.categories.find(c => c.id === catId);
+      if (!cat) return;
+
+      activeCatExam = cat;
+      catQuizAnswers = {};
+
+      document.getElementById("masteryCatBadge").innerText = `Category ${cat.number} of 6 Assessment`;
+      document.getElementById("masteryCatTitle").innerText = `${cat.title} Mastery Exam`;
+      document.getElementById("masteryScoreDisplay").innerText = `0 / ${cat.masteryQuiz.length}`;
+
+      const container = document.getElementById("masteryQuestionsContainer");
+      container.innerHTML = cat.masteryQuiz.map((q, idx) => `
+        <div class="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-white/10 space-y-3" id="mq-card-${idx}">
+          <span class="text-[10px] font-mono text-purple-400 uppercase tracking-widest font-bold">Exam Question ${idx + 1} of ${cat.masteryQuiz.length}</span>
+          <p class="text-xs sm:text-sm font-bold text-white">${q.prompt}</p>
+          <div class="space-y-2 mt-3" id="mq-options-${idx}">
+            ${q.options.map((opt, optIdx) => `
+              <button onclick="submitCatQuizAnswer(${idx}, ${optIdx}, ${q.correctIndex}, '${btoa(q.explanation)}')" class="w-full text-left p-3 rounded-xl bg-slate-950 border border-white/10 text-xs text-slate-300 hover:border-purple-400 hover:bg-slate-850 transition min-h-[44px]">
+                <span class="font-bold text-purple-400 mr-1.5 font-mono">${String.fromCharCode(65 + optIdx)}.</span> ${opt}
+              </button>
+            `).join("")}
+          </div>
+          <div id="mq-feedback-${idx}" class="text-xs hidden mt-3 p-3 rounded-xl"></div>
+        </div>
+      `).join("");
+
+      document.getElementById("masteryResultBox").classList.add("hidden");
+      switchView('category-quiz');
+    }
+
+    function submitCatQuizAnswer(qIdx, optIdx, correctIdx, encodedExplanation) {
+      const optContainer = document.getElementById(`mq-options-${qIdx}`);
+      const feedbackEl = document.getElementById(`mq-feedback-${qIdx}`);
+      const exp = atob(encodedExplanation);
+
+      const btns = optContainer.querySelectorAll('button');
+      btns.forEach(b => b.disabled = true);
+
+      if (optIdx === correctIdx) {
+        btns[optIdx].classList.add('bg-emerald-950', 'border-emerald-500', 'text-emerald-200');
+        feedbackEl.className = "text-xs p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 block";
+        feedbackEl.innerHTML = `<strong>Correct!</strong> ${exp}`;
+        catQuizAnswers[qIdx] = true;
+      } else {
+        btns[optIdx].classList.add('bg-rose-950', 'border-rose-500', 'text-rose-200');
+        btns[correctIdx].classList.add('bg-emerald-950', 'border-emerald-500', 'text-emerald-200');
+        feedbackEl.className = "text-xs p-3 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-300 block";
+        feedbackEl.innerHTML = `<strong>Incorrect.</strong> ${exp}`;
+        catQuizAnswers[qIdx] = false;
+      }
+
+      const total = activeCatExam.masteryQuiz.length;
+      const correctCount = Object.values(catQuizAnswers).filter(Boolean).length;
+      document.getElementById("masteryScoreDisplay").innerText = `${correctCount} / ${Object.keys(catQuizAnswers).length}`;
+
+      if (Object.keys(catQuizAnswers).length === total) {
+        const pct = Math.round((correctCount / total) * 100);
+        userProgress.categoryScores[activeCatExam.id] = pct;
+        saveProgress();
+        renderSyllabus();
+
+        const resultBox = document.getElementById("masteryResultBox");
+        resultBox.classList.remove("hidden");
+        resultBox.innerHTML = `
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/40 flex items-center justify-center mx-auto mb-2 text-lg sm:text-xl font-black">
+            ${pct}%
+          </div>
+          <h3 class="text-lg sm:text-xl font-bold text-white">Category ${activeCatExam.number} Mastery Exam Completed!</h3>
+          <p class="text-xs text-slate-300 mt-1">You scored ${correctCount} of ${total} (${pct}%). Saved to progress profile.</p>
+          <div class="mt-4 sm:mt-6 flex justify-center gap-3">
+            <button onclick="switchView('syllabus')" class="px-5 py-2.5 rounded-xl bg-teal-400 hover:bg-teal-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition min-h-[44px]">
+              Back to Syllabus
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // 4. WORD SYNTHESIZER
+    function updateWordBuilder() {
+      const prefixEl = document.getElementById("builderPrefix");
+      const rootEl = document.getElementById("builderRoot");
+      const suffixEl = document.getElementById("builderSuffix");
+
+      const p = prefixEl.value;
+      const r = rootEl.value;
+      const s = suffixEl.value;
+
+      let word = "Benevolent";
+      let breakdown = "BENE (well) + VOL (wish) + ENT (adj)";
+      let def = "Well-meaning, kindly, charitable.";
+      let cat = "The author critiques the paternalistic claim that colonial rulers acted as benevolent stewards of local welfare.";
+
+      if (p === "MALE" && r === "VOL") {
+        word = "Malevolent";
+        breakdown = "MALE (bad) + VOL (wish) + ENT (adj)";
+        def = "Wishing harm or evil to others; actively malicious.";
+        cat = "The author rejects the cynical premise that corporate algorithms are inherently malevolent.";
+      } else if (p === "EQUI" && r === "VOC") {
+        word = "Equivocal";
+        breakdown = "EQUI (equal) + VOC (voice) + AL (adj)";
+        def = "Open to more than one interpretation; ambiguous; speaking with equal voices.";
+        cat = "The survey results yielded equivocal conclusions regarding consumer response to green taxes.";
+      } else if (p === "CIRCUM" && (r === "LOCUT" || r === "DICT")) {
+        word = "Circumlocution";
+        breakdown = "CIRCUM (around) + LOCUT (speak) + ION (noun)";
+        def = "Using roundabout words; evasive speech.";
+        cat = "The corporate spokesperson used legal circumlocution to avoid direct answers.";
+      } else if (p === "EPISTEME" || s === "OLOGY" && r === "SCI") {
+        word = "Epistemology";
+        breakdown = "EPISTEME (knowledge) + OLOGY (study of)";
+        def = "The theory of knowledge, its methods, validity, and scope.";
+        cat = "The essay scrutinizes the epistemology of empirical science, questioning whether objective neutrality is truly achievable.";
+      } else if (p === "TELOS") {
+        word = "Teleology";
+        breakdown = "TELOS (end/purpose) + OLOGY (study of)";
+        def = "The explanation of phenomena by the purpose they serve rather than by prior causes.";
+        cat = "Evolutionary biologists rigorously reject teleology, maintaining that natural selection operates without predetermined foresight.";
+      } else if (p === "HERMES" || s === "ITICS") {
+        word = "Hermeneutics";
+        breakdown = "HERMES (interpretation) + ITICS (interpretive art)";
+        def = "The branch of knowledge that deals with interpretation, especially of texts or human behavior.";
+        cat = "Literary hermeneutics cautions that no text can be divorced from the historical horizon of its author.";
+      } else {
+        word = p.toLowerCase() + r.toLowerCase() + s.toLowerCase();
+        breakdown = `${p} + ${r} + ${s}`;
+        def = `Derived conceptual construct combining [${prefixEl.options[prefixEl.selectedIndex].dataset.desc}] with [${rootEl.options[rootEl.selectedIndex].dataset.desc}].`;
+        cat = `Academic writing synthesizes ${word} to represent precise conceptual relationships.`;
+      }
+
+      document.getElementById("builderResultWord").innerText = word;
+      document.getElementById("builderResultBreakdown").innerText = breakdown;
+      document.getElementById("builderResultDef").innerText = def;
+      document.getElementById("builderResultCatContext").innerText = `"${cat}"`;
+    }
+
+    // 5. FLASHCARDS
+    function initFlashcards() {
+      flashcardList = [];
+      CAT_CURRICULUM_DATA.categories.forEach(cat => {
+        cat.lessons.forEach(les => {
+          les.panels.forEach(p => {
+            if (p.type === "root_deep_dive") {
+              flashcardList.push({
+                clusterName: `${cat.title} (L${les.lessonNumber})`,
+                root: p.title.replace("Root Family A: ", "").replace("Root Family B: ", "").replace("Tone Group A: ", "").replace("Tone Group B: ", ""),
+                origin: p.origin,
+                coreMeaning: p.coreMeaning,
+                derivatives: p.derivatives
+              });
+            }
+          });
+        });
+      });
+
+      if (CAT_CURRICULUM_DATA.supplementaryModules) {
+        CAT_CURRICULUM_DATA.supplementaryModules.forEach(mod => {
+          mod.lessons.forEach(les => {
+            les.panels.forEach(p => {
+              if (p.type === "root_deep_dive") {
+                flashcardList.push({
+                  clusterName: mod.title,
+                  root: p.title,
+                  origin: p.origin,
+                  coreMeaning: p.coreMeaning,
+                  derivatives: p.derivatives
+                });
+              }
+            });
+          });
+        });
+      }
+
+      renderFlashcard();
+    }
+
+    function renderFlashcard() {
+      if (flashcardList.length === 0) return;
+      const card = flashcardList[currentFlashcardIndex];
+
+      document.getElementById("fcCluster").innerText = card.clusterName;
+      document.getElementById("fcRoot").innerText = card.root;
+      document.getElementById("fcOrigin").innerText = card.origin;
+      document.getElementById("fcMeaning").innerText = card.coreMeaning;
+      document.getElementById("fcProgress").innerText = `Card ${currentFlashcardIndex + 1} of ${flashcardList.length}`;
+
+      const list = document.getElementById("fcDerivativesList");
+      list.innerHTML = card.derivatives.map(d => `
+        <div class="py-1 border-b border-white/5 last:border-0">
+          <strong class="text-white">${d.word}</strong>: ${d.def}
+        </div>
+      `).join("");
+
+      isFlipped = false;
+      document.getElementById("fcFront").classList.remove("hidden");
+      document.getElementById("fcBack").classList.add("hidden");
+    }
+
+    function flipFlashcard() {
+      isFlipped = !isFlipped;
+      if (isFlipped) {
+        document.getElementById("fcFront").classList.add("hidden");
+        document.getElementById("fcBack").classList.remove("hidden");
+      } else {
+        document.getElementById("fcFront").classList.remove("hidden");
+        document.getElementById("fcBack").classList.add("hidden");
+      }
+    }
+
+    function nextFlashcard() {
+      currentFlashcardIndex = (currentFlashcardIndex + 1) % flashcardList.length;
+      renderFlashcard();
+    }
+
+    function prevFlashcard() {
+      currentFlashcardIndex = (currentFlashcardIndex - 1 + flashcardList.length) % flashcardList.length;
+      renderFlashcard();
+    }
+
+    // Pronunciation
+    function speakWord(word) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const cleanWord = word.split('/')[0].trim();
+        const utterance = new SpeechSynthesisUtterance(cleanWord);
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  </script>
+</body>
+</html>
