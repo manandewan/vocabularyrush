@@ -1264,6 +1264,15 @@
         window.speechSynthesis.speak(utterance);
       }
     }
+
+    // Register Service Worker for Native App Install Prompt & Offline PWA Support
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Vocab Rush PWA Service Worker Registered:', reg.scope))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
   </script>
 </body>
 </html>
