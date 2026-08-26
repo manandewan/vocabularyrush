@@ -64,6 +64,7 @@
 
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
   </style>
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
 </head>
 
 <body class="h-full flex flex-col bg-slate-950 font-sans selection:bg-teal-500 selection:text-slate-950 pb-20 md:pb-0">
@@ -71,6 +72,7 @@
   <!-- TOP STATUS BAR -->
   <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-white/5 py-1.5 px-4 text-xs font-medium flex items-center justify-between text-slate-300">
     <div class="flex items-center gap-2">
+      <img src="logo.jpg" alt="Vocabrush Logo Icon" class="w-4 h-4 rounded-md object-cover border border-blue-400/40">
       <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold bg-teal-500/10 text-teal-300 border border-teal-500/20">
         <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span>
         Vocabrush • High-Yield CAT VARC Engine
@@ -90,11 +92,7 @@
       
       <!-- Brand Logo -->
       <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('syllabus')">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-teal-500/20 font-black text-lg flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-        </div>
+        <img src="logo.jpg" alt="Vocabrush Logo" class="w-10 h-10 rounded-xl object-cover border border-blue-500/40 shadow-md shadow-blue-500/25 flex-shrink-0 hover:scale-105 transition-transform duration-200">
         <div>
           <div class="flex items-center gap-1.5">
             <span class="font-extrabold text-base tracking-tight text-white">Vocabrush</span>
@@ -158,17 +156,23 @@
       
       <!-- Hero Banner -->
       <div class="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden">
-        <div class="max-w-3xl">
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-[11px] font-semibold text-teal-300 mb-3">
-            <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
-            Vocabrush Full CAT VARC Suite • Local Persistence Enabled
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-semibold text-blue-300 mb-3">
+              <img src="logo.jpg" alt="Vocabrush Icon" class="w-3.5 h-3.5 rounded object-cover">
+              Vocabrush Full CAT VARC Suite • Local Persistence Enabled
+            </div>
+            <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              Vocabrush: <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-indigo-300 to-purple-400">The CAT VARC Decryption System</span>
+            </h1>
+            <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
+              36 Systematic Root Lessons, <strong>CAT Tone Taxonomy</strong>, <strong>Latin Logical Signposts</strong>, and <strong>Secondary Meaning Traps</strong>. Each lesson operates in a sequential multi-panel slide deck with a dedicated checkpoint quiz panel.
+            </p>
           </div>
-          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-            Vocabrush: <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-indigo-300 to-purple-400">The CAT VARC Decryption System</span>
-          </h1>
-          <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
-            36 Systematic Root Lessons, <strong>CAT Tone Taxonomy</strong>, <strong>Latin Logical Signposts</strong>, and <strong>Secondary Meaning Traps</strong>. Each lesson operates in a sequential multi-panel slide deck with a dedicated checkpoint quiz panel.
-          </p>
+          <div class="hidden md:flex flex-shrink-0 p-3 rounded-2xl bg-slate-900/80 border border-white/10 shadow-2xl shadow-blue-900/30">
+            <img src="logo.jpg" alt="Vocabrush Dictionary Logo" class="w-24 h-24 rounded-xl object-cover shadow-lg border border-blue-400/30">
+          </div>
+        </div>
 
           <!-- Overall Progress Bar -->
           <div class="mt-4 pt-4 border-t border-white/10">
